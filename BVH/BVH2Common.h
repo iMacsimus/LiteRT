@@ -436,6 +436,7 @@ std::vector<OpenVDB_Grid> m_VDBData;
   std::vector<
       float // float or any trivial type
   > m_CatmulClarkData;
+  std::vector<CatmulClark> m_CatmulClarkObjects;
 #endif
 #ifndef DISABLE_RIBBON
   //Ribbon data

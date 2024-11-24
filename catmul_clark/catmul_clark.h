@@ -5,9 +5,12 @@
 * HOST Catmul Clark representation (for preprocessing on CPU)
 * Almost all c++ possibilities, but KSlicer has problems with included headers
 */
+#include "LiteMath.h"
+
 struct CatmulClark
 {
-  // catmul clark data
+  LiteMath::float3 center;
+  float radius;
 };
 #endif
 

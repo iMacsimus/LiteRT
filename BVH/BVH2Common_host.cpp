@@ -880,8 +880,8 @@ uint32_t BVHRT::AddGeom_NURBS(const RBezierGrid &rbeziers, ISceneObject *fake_th
 //////////////////// CATMUL_CLARK SECTION /////////////////////////////////////////////////////
 uint32_t BVHRT::AddGeom_CatmulClark(const CatmulClark &surface, ISceneObject *fake_this, BuildOptions a_qualityLevel)
 {
-  float4 mn = float4(-0.5,-0.5,-0.5,0.5);
-  float4 mx = float4( 0.5, 0.5, 0.5,0.5);
+  float4 mn = to_float4(surface.center-surface.radius, 1.0f);
+  float4 mx = to_float4(surface.center+surface.radius, 1.0f);
   //TODO: find right BBox for given CatmulClark
 
   //fill geom data array
@@ -898,14 +898,16 @@ uint32_t BVHRT::AddGeom_CatmulClark(const CatmulClark &surface, ISceneObject *fa
   m_geomData.back().boxMax = mx;
 
   // this offset is used in BVHRT::IntersectCatmulClark function
-  m_geomData.back().offset = uint2(m_CatmulClarkHeaders.size(), 0);
+  m_geomData.back().offset = uint2(m_CatmulClarkObjects.size(), 0);
   m_geomData.back().bvhOffset = m_allNodePairs.size();
   m_geomData.back().type = TYPE_CATMUL_CLARK;
+
+  m_CatmulClarkObjects.push_back(surface);
 
   //create list of bboxes for BLAS
   std::vector<BVHNode> orig_nodes(2);
   orig_nodes[0].boxMin = to_float3(mn);
-  orig_nodes[0].boxMin = to_float3(mx);
+  orig_nodes[0].boxMax = to_float3(mx);
   //BVH can process only 2+ leaves, not one
   //So we need to add a small dummy box (it's a crutch)
   orig_nodes[1].boxMin = to_float3(mx);

@@ -4585,6 +4585,9 @@ void litert_test_46_catmul_clark() {
   LiteImage::Image2D<uint32_t> image(W, H);
 
   CatmulClark surface;
+  surface.center = { 0.0f, 0.0f, 0.0f };
+  surface.radius = 1.0f;
+  
   //TODO: surface = load_catmul_clark("example.txt");
 
   auto pRender = CreateMultiRenderer(DEVICE_GPU);

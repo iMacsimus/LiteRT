@@ -1796,7 +1796,8 @@ void BVHRT::IntersectCatmulClark(const float3& ray_pos, const float3& ray_dir,
   // offset of catmul clark object in headers array
   uint32_t offset = m_geomData[geomId].offset.x;
   // object header
-  CatmulClarkHeader header = m_CatmulClarkHeaders[offset];
+  CatmulClark object = m_CatmulClarkObjects[offset];
+
   // object type <=> catmul_clark
   uint32_t type = m_geomData[geomId].type;
 
@@ -1808,10 +1809,26 @@ void BVHRT::IntersectCatmulClark(const float3& ray_pos, const float3& ray_dir,
   // you can pass bvh leave information to this function in GeomDataCatmulClark::Intersect 
   // ...
 
-  float3 norm = normalize(ray_pos + tNear_tFar.x * ray_dir);
+  float3 o_c = ray_pos - object.center;
+
+  float b = 2 * dot(ray_dir, o_c);
+  float c = dot(o_c, o_c) - object.radius * object.radius;
+
+  float D = b*b - 4*c;
+  if (D < 0)
+    return;
+  
+  float t1 = (-b - sqrt(D)) / 2;
+  float t2 = (-b + sqrt(D)) / 2;
+
+  float t = (t1 >= 0) ? t1 : t2;
+  if (t < 0)
+    return;
+
+  float3 norm = normalize(ray_pos + t * ray_dir - object.center);
   float2 encoded_norm = encode_normal(norm); // compress 3dim normal vector to 2dim vector
   
-  pHit->t = tNear_tFar.x;
+  pHit->t = t;
   pHit->primId = 0;
   pHit->geomId = geomId | (type << SH_TYPE);
   pHit->instId = instId;
