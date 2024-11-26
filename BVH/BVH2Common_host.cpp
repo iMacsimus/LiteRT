@@ -905,13 +905,36 @@ uint32_t BVHRT::AddGeom_CatmulClark(const CatmulClark &surface, ISceneObject *fa
   m_CatmulClarkObjects.push_back(surface);
 
   //create list of bboxes for BLAS
-  std::vector<BVHNode> orig_nodes(2);
-  orig_nodes[0].boxMin = to_float3(mn);
-  orig_nodes[0].boxMax = to_float3(mx);
-  //BVH can process only 2+ leaves, not one
-  //So we need to add a small dummy box (it's a crutch)
-  orig_nodes[1].boxMin = to_float3(mx);
-  orig_nodes[1].boxMax = to_float3(mx+0.0001f);
+  //lets divide sphere into 8 pieces => make 8 bboxes
+  std::vector<BVHNode> orig_nodes(8);
+  for (int i = 0; i < 2; ++i)
+  for (int j = 0; j < 2; ++j)
+  for (int k = 0; k < 2; ++k)
+  {
+    float3 step = to_float3((mx-mn)/2);
+    float3 cur_min = to_float3(mn) + step * float3{ (float)i, (float)j, (float)k };
+    float3 cur_max = to_float3(mn) + step * float3{ (float)i+1.0f, (float)j+1.0f, (float)k+1.0f };
+    orig_nodes[i*4+j*2+k].boxMin = cur_min;
+    orig_nodes[i*4+j*2+k].boxMax = cur_max;
+  }
+
+  //now add leave info for each leave
+  for (int i = 0; i < 2; ++i)
+  for (int j = 0; j < 2; ++j)
+  for (int k = 0; k < 2; ++k)
+  {
+    //remember index of leave, we'll use it in intersection function
+    size_t offset = m_CatmulClarkLeaves.size();
+    uint32_t offset_and_count = PackOffsetAndSize(offset, 1);
+    m_primIdCount.push_back(offset_and_count);
+
+    //add leave info
+    CatmulClarkLeaveInfo info;
+    info.some_value1 = /*for example*/ i*0.5f+0.5f;
+    info.some_value2 = /*for example*/ j*0.5f+0.5f;
+    info.some_value3 = /*for example*/ k*0.5f+0.5f;
+    m_CatmulClarkLeaves.push_back(info);
+  }
 
   return fake_this->AddGeom_AABB(AbstractObject::TAG_CATMUL_CLARK, (const CRT_AABB*)orig_nodes.data(), orig_nodes.size());
 }

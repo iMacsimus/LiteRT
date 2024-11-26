@@ -12,6 +12,14 @@ struct CatmulClark
   LiteMath::float3 center;
   float radius;
 };
+
+struct CatmulClarkLeaveInfo
+{
+  float some_value1;
+  float some_value2;
+  float some_value3;
+};
+
 #endif
 
 // Representation for BVH

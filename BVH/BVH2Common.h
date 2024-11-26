@@ -200,7 +200,7 @@ struct BVHRT : public ISceneObject
   
   void IntersectCatmulClark(const float3& ray_pos, const float3& ray_dir,
                       float tNear, uint32_t instId,
-                      uint32_t geomId, CRT_Hit* pHit);
+                      uint32_t geomId, CRT_Hit* pHit, uint32_t leave_offset);
   
   void IntersectRibbon(const float3& ray_pos, const float3& ray_dir,
                       float tNear, uint32_t instId,
@@ -437,6 +437,7 @@ std::vector<OpenVDB_Grid> m_VDBData;
       float // float or any trivial type
   > m_CatmulClarkData;
   std::vector<CatmulClark> m_CatmulClarkObjects;
+  std::vector<CatmulClarkLeaveInfo> m_CatmulClarkLeaves;
 #endif
 #ifndef DISABLE_RIBBON
   //Ribbon data
@@ -727,22 +728,12 @@ struct GeomDataCatmulClark : public AbstractObject
     uint32_t geometryId = geomId;
     uint32_t globalAABBId = bvhrt->startEnd[geometryId].x + info.aabbId;
 
-    /* 
-    * OPTIONAL
-    * If you write some data for bvh leave, you need to get offset of this data from m_primIdCount
-    * So, when you add geometry (AddGeom_CatmulClark), you have to write offset to m_primIdCount
-    * 
-    * You can access this offset form IntersectCatmulClark by passing it as parameter 
-    * To do this change IntersectCatmulClark signature
-    * 
-    * You can use this offset in any array you've defined as member in BVHRT
-    * 
-    * Example of getting offset:
-    *   uint32_t start_count_packed = bvhrt->m_primIdCount[globalAABBId];
-    *   uint32_t offset = EXTRACT_START(start_count_packed);
-    */
+    uint32_t start_count_packed = bvhrt->m_primIdCount[globalAABBId];
+    uint32_t offset = EXTRACT_START(start_count_packed);
 
-    bvhrt->IntersectCatmulClark(ray_pos, ray_dir, tNear, info.instId, geometryId, pHit);
+    bvhrt->IntersectCatmulClark(
+        ray_pos, ray_dir, tNear, info.instId, geometryId, pHit,
+        offset);
     return pHit->t >= tPrev  ? TAG_NONE : TAG_GS;
   }
 };

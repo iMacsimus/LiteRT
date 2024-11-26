@@ -1791,8 +1791,11 @@ void BVHRT::IntersectNURBS(const float3& ray_pos, const float3& ray_dir,
 //////////////////// CATMUL_CLARK SECTION /////////////////////////////////////////////////////
 void BVHRT::IntersectCatmulClark(const float3& ray_pos, const float3& ray_dir,
                       float tNear, uint32_t instId,
-                      uint32_t geomId, CRT_Hit* pHit) {
+                      uint32_t geomId, CRT_Hit* pHit,
+                      uint32_t leave_offset) {
 #ifndef DISABLE_CATMUL_CLARK
+  CatmulClarkLeaveInfo leave_info = m_CatmulClarkLeaves[leave_offset];
+  
   // offset of catmul clark object in headers array
   uint32_t offset = m_geomData[geomId].offset.x;
   // object header
@@ -1825,7 +1828,9 @@ void BVHRT::IntersectCatmulClark(const float3& ray_pos, const float3& ray_dir,
   if (t < 0)
     return;
 
-  float3 norm = normalize(ray_pos + t * ray_dir - object.center);
+  float3 norm = float3{ leave_info.some_value1, leave_info.some_value2, leave_info.some_value2 };
+  norm = normalize(norm);
+  
   float2 encoded_norm = encode_normal(norm); // compress 3dim normal vector to 2dim vector
   
   pHit->t = t;

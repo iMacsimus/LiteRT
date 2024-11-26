@@ -4582,6 +4582,7 @@ void litert_test_46_catmul_clark() {
   unsigned W = 1024, H = 1024;
 
   MultiRenderPreset preset = getDefaultPreset();
+  preset.render_mode = MULTI_RENDER_MODE_NORMAL;
   LiteImage::Image2D<uint32_t> image(W, H);
 
   CatmulClark surface;
